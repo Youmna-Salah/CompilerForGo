@@ -1,0 +1,216 @@
+import java.util.Stack;
+import java.lang.System;
+import java.io.*;
+import java_cup.runtime.Symbol;
+%%
+%class Lexer
+
+%implements java_cup.runtime.Scanner
+%function next_token
+%type java_cup.runtime.Symbol
+%char
+%line
+
+
+%{
+private int Quote_count = 0;
+private static String Quoted ="";
+	//initialize  variables to be used by class
+	private Stack<Character> stack_char = new Stack<Character>();
+	boolean paran = false;
+	boolean square = false;
+	boolean curly = false;
+%}
+
+
+%init{
+
+//Add code to be executed on initialization of the lexer
+%init}
+IMPORT =import SPACE STRING_TEXT BREAKLINE
+PACKAGE =package
+BREAKLINE =\n
+SPACE =[\n\ \t\b\012]
+FUNC=func
+CONST=const
+EQUAL=[\=]
+PLUS =[+]
+INCREMENT =\++
+MINUS =[-]
+VAR=var
+IF =if
+ASTRISK =\*
+COLON_EQUAL = \:=
+ELSE =else
+PERCENT =\%
+COMMENT =\//(.)*
+AND_OP =\&&
+REL_OP = SMALLER|GREATER|EQUAL_EQUAL|LESS_EQUAL|GREATER_EQUAL
+SMALLER = \<
+GREATER = \>
+EQUAL_EQUAL = \==
+LESS_EQUAL = \=<
+GREATER_EQUAL = \>=
+RETURN =return
+COLON = \:
+SINGLE_OR =\|
+SEMI_COLON = \;
+OPEN_PARAN=\( EXP CLOSE_PARAN
+CLOSE_PARAN =\) 
+OPEN_SQUARE =\[ 
+CLOSE_SQUARE =\] 
+EXP =([IDENTIFIER|DOT|COMMA|INT_LIT|SLASH|STRING_TEXT]*)
+IDENTIFIER=[A-Za-z]+[0-9]*
+STRING_TEXT=(\\\"|\\\`|[^\n\"\`]|\\{SPACE}+\\)+
+STRING =(\\\"|\\\`|[^\n\"\`]|\\{SPACE}+\\)*
+OPEN_CURLY=\{
+CLOSE_CURLY=\}
+DOT=\.
+COMMA=\,
+TYPE =type
+INT_LIT=[0-9]+
+SLASH =/
+SWITCH =switch
+CASE =case
+DEFAULT =default
+FOR =for
+STRUCT =struct
+%eofval{
+//Add code to be executed when the end of the file is reached
+	{
+		if(paran) {
+			return (new Symbol(sym.EOF, "There is some ( that is not closed"));
+		}
+		if(square) {
+			return (new Symbol(sym.EOF, "There is some [ that is not closed"));
+		}
+		if(curly) {
+			return (new Symbol(sym.EOF, "There is some {} that is not closed"));
+		}
+		return (new Symbol(sym.EOF,"Done"));
+	}
+%eofval}
+
+
+%% 
+<YYINITIAL> {PACKAGE} { return (new Symbol(sym.PACKAGE,yytext()));}
+<YYINITIAL> {TYPE} { return (new Symbol(sym.TYPE,yytext()));}
+<YYINITIAL> {STRUCT} { return (new Symbol(sym.STRUCT,yytext()));}
+<YYINITIAL> {SWITCH} { return (new Symbol(sym.SWITCH,yytext()));}
+<YYINITIAL> {CASE} { return (new Symbol(sym.CASE,yytext()));}
+<YYINITIAL> {DEFAULT} { return (new Symbol(sym.DEFAULT,yytext()));}
+
+<YYINITIAL> {SPACE} {}
+<YYINITIAL> {BREAKLINE} {Quote_count = 0;}
+<YYINITIAL> {REL_OP} { return (new Symbol(sym.REL_OP,yytext()));}
+<YYINITIAL> {PLUS} { return (new Symbol(sym.PLUS,yytext()));}
+<YYINITIAL> {MINUS} { return (new Symbol(sym.MINUS,yytext()));}
+<YYINITIAL> {ASTRISK} { return (new Symbol(sym.ASTRISK,yytext()));}
+<YYINITIAL> {RETURN} { return (new Symbol(sym.RETURN,yytext()));}
+<YYINITIAL> {COMMENT} {}
+
+<YYINITIAL> {IMPORT} { return (new Symbol(sym.IMPORT,yytext()));}
+<YYINITIAL> {ELSE} { return (new Symbol(sym.ELSE,yytext()));}
+<YYINITIAL> {IF} { return (new Symbol(sym.IF,yytext()));}
+<YYINITIAL> {COLON} { return (new Symbol(sym.COLON,yytext()));}
+<YYINITIAL> {COLON_EQUAL} { return (new Symbol(sym.COLON_EQUAL,yytext()));}
+<YYINITIAL> {SEMI_COLON} { return (new Symbol(sym.SEMI_COLON,yytext()));}
+<YYINITIAL> {AND_OP} { return (new Symbol(sym.AND_OP,yytext()));}
+<YYINITIAL> {PERCENT} { return (new Symbol(sym.PERCENT,yytext()));}
+<YYINITIAL> {FUNC} { return (new Symbol(sym.FUNC,yytext()));}
+<YYINITIAL> {COMMA} { return (new Symbol(sym.COMMA,yytext()));}
+
+<YYINITIAL> {INCREMENT} { return (new Symbol(sym.INCREMENT,yytext()));}
+
+
+<YYINITIAL> \"({STRING_TEXT})\" {
+	String str =  yytext().substring(1,yytext().length() - 1);
+	
+	if(str.length() == yytext().length() - 2)
+	return (new Symbol(sym.STRING_TEXT, yytext()));
+	else
+return (new Symbol(sym.error, "Invalid input:  "+yytext()  +" in line "+(yyline+1)));
+}
+
+<YYINITIAL> \" {
+	String str =  yytext().substring(1,yytext().length());
+
+return (new Symbol(sym.error, "Invalid input:  "+yytext()  +" in line "+(yyline+1)));
+}
+
+
+<YYINITIAL> \`{STRING_TEXT}\` {
+	String str =  yytext().substring(1,yytext().length() - 1);
+	
+	if(str.length() == yytext().length() - 2)
+	return (new Symbol(sym.STRING_TEXT, yytext()));
+	else
+	return (new Symbol(sym.error, "STRING ERROR"));
+
+}
+<YYINITIAL> \` {
+	String str =  yytext().substring(1,yytext().length());
+
+return (new Symbol(sym.error, "Invalid input: "+ yytext()  +" in line: "+yyline));
+}
+<YYINITIAL> {CONST} { return (new Symbol(sym.CONST,yytext()));}
+
+<YYINITIAL> {EQUAL} { return (new Symbol(sym.EQUAL,yytext()));}
+<YYINITIAL> {VAR} { return (new Symbol(sym.VAR,yytext()));}
+<YYINITIAL> {IDENTIFIER} { return (new Symbol(sym.IDENTIFIER,yytext()));}
+<YYINITIAL> {OPEN_PARAN} { stack_char.push('('); return (new Symbol(sym.OPEN_PARAN,yytext()));}
+<YYINITIAL> {OPEN_SQUARE} { stack_char.push('[');return (new Symbol(sym.OPEN_SQUARE,yytext()));}
+<YYINITIAL> {OPEN_CURLY} { stack_char.push('{');return (new Symbol(sym.OPEN_CURLY,yytext()));}
+<YYINITIAL> {CLOSE_PARAN} { 
+		Character temp = stack_char.pop();
+		if(temp == '(') {
+			return (new Symbol(sym.CLOSE_PARAN,yytext()));
+		} else {
+			if(temp =='[') {
+				square = true;
+			}
+			if(temp == '{') {
+				curly = true;
+			}
+			return (new Symbol(sym.error, "You have a missing bracket in line" + + (yyline+1)));
+		}
+	}
+<YYINITIAL> {CLOSE_SQUARE} { 
+		Character temp = stack_char.pop();
+			if(temp == '[') {
+				return (new Symbol(sym.CLOSE_SQUARE,yytext()));
+			} else {
+				if(temp == '(') {
+					paran = true;
+				}
+				if(temp == '{') {
+					curly = true;
+				}
+				return ( new Symbol(sym.error, "You have a missing bracket in line" + + (yyline+1)));
+			}
+
+		}
+<YYINITIAL> {CLOSE_CURLY} { 
+		Character temp = stack_char.pop();
+		if(temp == '{') {
+			return (new Symbol(sym.CLOSE_CURLY,yytext()));
+		} else {
+			if(temp =='[') {
+				square = true;
+			}
+			if(temp == '(') {
+				paran = true;
+			}
+			return (new Symbol(sym.error, "You have a missing bracket in line " + (yyline+1) ));
+		}
+	}
+
+<YYINITIAL> {DOT} { return (new Symbol(sym.DOT,yytext()));}
+<YYINITIAL> {INT_LIT} { return (new Symbol(sym.INT_LIT,yytext()));}
+<YYINITIAL> {SLASH} { return (new Symbol(sym.SLASH,yytext()));}
+<YYINITIAL> {FOR} { return (new Symbol(sym.FOR,yytext()));}
+
+<YYINITIAL> {IDENTIFIER} { return (new Symbol(sym.IDENTIFIER,yytext()));}
+<YYINITIAL> . {
+  return new Symbol(sym.error, "Invalid input: " + yytext());
+}

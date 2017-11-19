@@ -1,0 +1,19 @@
+
+import java_cup.runtime.*;
+
+
+/* Terminals (tokens returned by the scanner). */
+terminal  CONST, EQUAL, PLUS, INCREMENT, MINUS, VAR,
+IF, FUNC, ASTRISK, COLON_EQUAL, 
+ELSE, PERCENT, COMMENT, AND_OP, REL_OP, RETURN, COLON, SEMI_COLON,
+OPEN_PARAN, CLOSE_PARAN, OPEN_SQUARE, CLOSE_SQUARE, GREATER_EQUAL, SINGLE_OR,
+STRING_TEXT, OPEN_CURLY, CLOSE_CURLY, DOT, COMMA, TYPE, INT_LIT, SMALLER, GREATER, EQUAL_EQUAL, LESS_EQUAL,
+SLASH, SWITCH, CASE, DEFAULT, FOR, STRUCT, OR_OPR, PACKAGE,
+IMPORT;
+terminal String IDENTIFIER;
+/* Non terminals */
+non terminal  String   package_list;
+start with package_list ;
+/* Precedences */
+
+package_list ::=  PACKAGE IDENTIFIER;

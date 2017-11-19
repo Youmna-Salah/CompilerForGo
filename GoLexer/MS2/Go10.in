@@ -1,0 +1,18 @@
+package main;
+
+import "fmt";
+
+// This `person` struct type has `name` and `age` fields.
+type person struct {
+    name string;
+    age  int;
+}
+
+func main() {
+    .fmt.Println(type person{"Bob", 20});
+	.fmt.Println(type person{name: "Alice", age: 30});
+    .fmt.Println(type person{name: "Fred"});
+    
+	s := type person{name: "Sean", age: 50};
+    .fmt.Println(s.name);
+}
